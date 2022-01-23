@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -16,7 +17,15 @@ public class AnimatedSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         getHolder().addCallback(this);
     }
 
-    void drawRect(int x, int y) {
+    float curX = 100;
+    float curY = 100;
+
+    float toX = curX;
+    float toY = curY;
+
+    float e = 1;
+
+    void drawRect(float x, float y) {
         Paint paint = new Paint();
         paint.setColor(Color.rgb(0, 0, 255));
 
@@ -29,18 +38,34 @@ public class AnimatedSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() != MotionEvent.ACTION_DOWN) {
+            return false;
+        }
+
+        toX = event.getX();
+        toY = event.getY();
+
+        return super.onTouchEvent(event);
+    }
+
+    @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true) {
-                    for (int i = 0; i < 500; i++) {
-                        drawRect(i, 3 * i);
+                    if (!(Math.abs(curX - toX) < e) || !(Math.abs(curY - toY) < e)) {
+                        float step = 0.05f;
+                        System.out.println(curX+":"+(toX / step));
+                        curX = curX + toX * step;
+                        curY = curY + toY * step;
                     }
 
+                    drawRect(curX, curY);
 
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(50);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
